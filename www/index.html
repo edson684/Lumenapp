@@ -21,7 +21,7 @@ svg{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-l
 header{position:sticky;top:0;z-index:5;padding:calc(10px + var(--sa)) 20px 12px;border-bottom:1px solid rgba(255,255,255,.06)}
 .hd{display:flex;align-items:center;justify-content:space-between}
 .hd b{font-size:28px;font-weight:800;letter-spacing:-.6px}#pxs{font-size:11px;font-weight:600;color:var(--mu);border:1px solid var(--ln);border-radius:12px;padding:4px 10px}#pxs.ok{color:#30d158;border-color:#1f5a30}
-.fl{display:flex;gap:8px;margin-top:10px}.fl input{flex:1;border-radius:12px;padding:10px 14px}.fl select{width:42%;border-radius:12px;padding:10px 12px}
+.fl{display:flex;gap:8px;margin-top:10px}.fl input{flex:1;border-radius:12px;padding:10px 14px}
 main{padding:0 0 8px}
 #empty{margin:40px 20px;padding:28px 20px;border-radius:24px;text-align:center;background:linear-gradient(150deg,#1c2a4a,#16161d)}
 #empty h2{margin:0 0 6px;font-size:24px;letter-spacing:-.5px}#empty p{margin:0 0 18px;color:var(--mu)}
@@ -80,15 +80,26 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.3px;margin:22px 20px 10px}
 .ep{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:12px 4px;border-bottom:1px solid var(--ln)}.ep b{width:34px;color:var(--mu);font-size:13px;flex:none}.ep span{flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media(orientation:landscape) and (max-height:520px){.hc{flex-direction:row;text-align:left;gap:24px}.hp{width:112px}.ht h2{font-size:24px}.dots{justify-content:flex-start}.hbt{max-width:360px}}
 @media(min-width:900px){#hero{padding:32px max(40px,calc(50% - 480px))}}
+
+.gb{flex:none;max-width:46%;display:flex;align-items:center;gap:6px;padding:0 12px;height:40px;border-radius:12px;background:rgba(255,255,255,.1);font-size:14px;font-weight:600}.gb span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gb.on{background:#fff;color:#0b0b0f}
+.gl{display:grid;gap:2px}.gi{display:flex;align-items:center;gap:10px;width:100%;padding:13px 10px;border-radius:12px;text-align:left}.gi span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px}.gi small{color:var(--mu)}.gi.on{background:rgba(255,255,255,.09)}.gi svg{color:var(--ac)}
+#toast{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);z-index:60;max-width:86%;padding:10px 18px;border-radius:20px;background:rgba(48,48,58,.92);font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s;text-align:center}#toast.on{opacity:1}
+.tl .dlb{position:absolute;top:4px;left:4px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:#fff;opacity:.85}
+.epr{display:flex;align-items:center;border-bottom:1px solid var(--ln)}.epr .ep{border:0;flex:1;min-width:0}.dlx{width:44px;height:44px;flex:none;color:var(--mu);display:flex;align-items:center;justify-content:center}
+#dlc{padding:14px 20px 0}#dlc h3{margin:6px 0 10px}.s2{color:var(--mu);font-size:14px;margin:8px 0}
+.dr{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--ln);cursor:pointer}.dr i{position:relative;width:96px;height:56px;border-radius:10px;overflow:hidden;flex:none}.dr i img{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);object-fit:contain}
+.dt{flex:1;min-width:0}.dt .n{display:block;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dt .st{display:block;font-size:12px;color:var(--mu);margin-top:2px}.dt .pr{margin:6px 0 0}.dt .pr b{background:var(--ac)}.dt .st.bad{color:#ff6961}
+.dx{width:40px;height:40px;flex:none;color:var(--mu);display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
 <header class="g"><div class="hd"><b>Lumen</b><span style="flex:1"></span><small id="pxs"></small><button class="ib" id="bf" aria-label="Minha lista"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l2.5 5 5.5.8-4 3.9.9 5.5-4.9-2.6-4.9 2.6.9-5.5-4-3.9 5.5-.8z"/></svg></button><button class="ib" id="bs" aria-label="Fontes"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button></div>
-<div class="fl"><input id="q" type="search" placeholder="Buscar canal, filme ou série" aria-label="Buscar"><select id="g" aria-label="Categoria"></select></div></header>
+<div class="fl"><input id="q" type="search" placeholder="Buscar canal, filme ou série" aria-label="Buscar"><button class="gb" id="gb" aria-label="Categoria"><span id="gl">Todas as categorias</span><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button><select id="g" hidden></select></div></header>
 
 <main>
   <div id="empty" hidden><h2>Bem-vindo ao Lumen</h2><p>Adicione sua lista M3U ou sua conta Xtream para começar.</p><button class="btn" id="oe">Adicionar fonte</button></div>
   <div id="homec" hidden><div id="hero" hidden></div><section id="recs" hidden><h3>Continuar assistindo</h3><div class="rr" id="rr"></div></section><div id="rows"></div></div>
+  <div id="dlc" hidden><h3>Downloads</h3><p class="s2" id="dlh"></p><div id="dll"></div></div>
   <div id="cnt" hidden></div>
   <div class="grid" id="list" hidden></div>
 </main>
@@ -98,6 +109,7 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.3px;margin:22px 20px 10px}
   <button data-t="vod"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="3"/><path d="M10 9.5v5l4-2.5z"/></svg>Filmes</button>
   <button data-t="series"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="7" width="17" height="12" rx="2.5"/><path d="M8 3.5l4 3.5 4-3.5"/></svg>Séries</button>
   <button data-t="live"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="2.5"/><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9M16.5 7.5a6.4 6.4 0 0 1 0 9"/></svg>Ao vivo</button>
+  <button data-t="dl"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 11l4.5 4.5 4.5-4.5M5 19.500h14"/></svg>Downloads</button>
 </nav>
 
 <div id="setup" class="ov" hidden><section class="sheet" role="dialog" aria-label="Fontes">
@@ -118,18 +130,22 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.3px;margin:22px 20px 10px}
   </div>
   <input id="srv" placeholder="Servidor proxy (só se o site estiver hospedado em outro lugar)" inputmode="url" autocapitalize="off" aria-label="Servidor proxy">
   <div id="msg"></div>
+  <button class="btn g2" id="bdel" hidden>Limpar lista salva</button>
 </section></div>
 
 <div id="sr" class="ov" hidden><section class="sheet" role="dialog" aria-label="Série"><div class="gr"></div><div class="sh"><div class="sp" id="sp"></div><div><h2 id="sn"></h2><small id="sg"></small></div></div><p id="spl"></p><div class="chips" id="sc"></div><div id="se"></div></section></div>
 
+<div id="gs" class="ov" hidden><section class="sheet" role="dialog" aria-label="Categorias"><div class="gr"></div><h2>Categorias</h2><input id="gq" type="search" placeholder="Buscar categoria" aria-label="Buscar categoria"><div class="gl" id="gl2"></div></section></div>
+<div id="toast" role="status"></div>
+
 <div id="pl" class="paused" hidden>
   <video id="v" playsinline autoplay></video>
   <div class="ui" id="ui">
-    <div class="top"><button class="rd g" id="cl" aria-label="Fechar"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="t"><div id="np"></div></div><span id="lvb" hidden>AO VIVO</span></div>
+    <div class="top"><button class="rd g" id="cl" aria-label="Fechar"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="t"><div id="np"></div></div><span id="lvb" hidden>AO VIVO</span><button class="rd g" id="pd" aria-label="Baixar"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 11l4.5 4.5 4.5-4.5M5 19.5h14"/></svg></button></div>
     <div class="mid"><button class="sk" id="rw" aria-label="Voltar 10 segundos"><svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 1 0 2-5M5 4v4h4"/></svg></button>
       <button class="g" id="pp" aria-label="Reproduzir ou pausar"><svg class="pl" width="34" height="34" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M7 4.500v15l13-7.500z"/></svg><svg class="pa" width="34" height="34" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></button>
       <button class="sk" id="fw" aria-label="Avançar 10 segundos"><svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12a7 7 0 1 1-2-5M19 4v4h-4"/></svg></button></div>
-    <div class="bot"><span class="sb" id="t1">0:00</span><input class="sb" id="sk" type="range" min="0" max="1000" value="0" aria-label="Posição"><span class="sb" id="t2">0:00</span><span style="flex:1" class="lvs"></span><button class="rd g" id="fs" aria-label="Tela cheia"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div>
+    <div class="bot"><span class="sb" id="t1">0:00</span><input class="sb" id="sk" type="range" min="0" max="1000" value="0" aria-label="Posição"><span class="sb" id="t2">0:00</span><span style="flex:1" class="lvs"></span><button class="rd g" id="ar" aria-label="Proporção da tela"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M7 10V9.500h.5M17 14v.5h-.5"/></svg></button><button class="rd g" id="fs" aria-label="Tela cheia"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div>
   </div>
   <div id="er"></div>
 </div>
@@ -245,21 +261,45 @@ function groupSeries(arr){
 /* ---------- Catálogo ---------- */
 const LAB={home:'Início',vod:'Filmes',series:'Séries',live:'Ao vivo',fav:'Minha lista'};
 function setTab(t){tab=t;document.querySelectorAll('#ft button[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('#bf').classList.toggle('on',t==='fav')}
+const DB={open(){return new Promise((res,rej)=>{const r=indexedDB.open('lumen',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})},
+  async get(k){try{const d=await this.open();return await new Promise(res=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>res(null)})}catch(e){return null}},
+  async set(k,v){try{const d=await this.open();return await new Promise(res=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').put(v,k);t.oncomplete=()=>res(true);t.onerror=()=>res(false);t.onabort=()=>res(false)})}catch(e){return false}},
+  async del(k){try{const d=await this.open();return await new Promise(res=>{const t=d.transaction('kv','readwrite');t.objectStore('kv').delete(k);t.oncomplete=()=>res(true);t.onerror=()=>res(false)})}catch(e){return false}}};
 function setItems(arr){
   items=arr;setTab('home');$('#q').value='';fillG();filter();
-  msg(arr.length+' itens carregados.');$('#setup').hidden=true;
+  msg(arr.length+' itens carregados e salvos no aparelho.');$('#setup').hidden=true;$('#bdel').hidden=false;
+  DB.set('lib',{items:arr,XC,at:Date.now()}).then(ok=>{if(!ok)msg(arr.length+' itens carregados (não foi possível salvar no aparelho).',true)});
 }
 function fillG(){
-  const set=new Set();
-  items.forEach(i=>{if(tab==='home'||tab==='fav'||i.type===tab)set.add(i.group)});
+  const m=new Map();
+  items.forEach(i=>{if(tab==='home'||tab==='fav'||i.type===tab)m.set(i.group,(m.get(i.group)||0)+1)});
   const g=$('#g');g.innerHTML='';
   g.append(new Option('Todas as categorias',''));
-  [...set].forEach(x=>g.append(new Option(x,x)));
+  CATS=[...m];CATS.forEach(([x])=>g.append(new Option(x,x)));
+  setGL();
+}
+let CATS=[];
+function setGL(){const v=$('#g').value;$('#gl').textContent=v||'Todas as categorias';$('#gb').classList.toggle('on',!!v)}
+function drawG(){
+  const q=$('#gq').value.toLowerCase(),cv=$('#g').value,L=$('#gl2');L.innerHTML='';
+  const tot=CATS.reduce((a,c)=>a+c[1],0);
+  const rows=(q?[]:[['',tot]]).concat(CATS.filter(c=>c[0].toLowerCase().includes(q)));
+  rows.forEach(([name,n])=>{
+    const b=document.createElement('button');b.className='gi'+(name===cv?' on':'');
+    const a=document.createElement('span');a.textContent=name||'Todas as categorias';
+    const c=document.createElement('small');c.textContent=n;b.append(a,c);
+    if(name===cv)b.insertAdjacentHTML('beforeend','<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>');
+    b.onclick=()=>{$('#g').value=name;setGL();$('#gs').hidden=true;filter()};
+    L.append(b);
+  });
+  if(!rows.length)L.innerHTML='<p class="s2">Nenhuma categoria encontrada.</p>';
 }
 function filter(){
   const q=$('#q').value.toLowerCase(),g=$('#g').value,home=tab==='home'&&!q;
+  $('#dlc').hidden=tab!=='dl';document.querySelector('.fl').hidden=tab==='dl';
+  if(tab==='dl'){$('#empty').hidden=true;$('#homec').hidden=true;$('#list').hidden=true;$('#cnt').hidden=true;clearInterval(htm);renderDL();return}
   $('#empty').hidden=items.length>0;
-  $('#homec').hidden=!home||!items.length;$('#list').hidden=home;$('#cnt').hidden=home;$('#g').hidden=home;
+  $('#homec').hidden=!home||!items.length;$('#list').hidden=home;$('#cnt').hidden=home;$('#gb').hidden=home;
   clearInterval(htm);
   if(home){if(items.length)renderHome();return}
   view=items.filter(i=>(tab==='home'||(tab==='fav'?favs.has(i.url):i.type===tab))&&(!g||i.group===g)&&(!q||i.name.toLowerCase().includes(q)));
@@ -278,7 +318,9 @@ function tile(i,k){
   if(i.type==='live'){const l=document.createElement('span');l.className='lb';l.textContent='AO VIVO';d.append(l)}
   const n=document.createElement('div');n.className='nm';n.textContent=i.name;
   const b=document.createElement('button');b.className='fv'+(favs.has(i.url)?' on':'');b.innerHTML=STAR;b.setAttribute('aria-label','Favoritar');b.dataset.fav=1;
-  d.append(n,b);return d;
+  d.append(n,b);
+  if(i.type==='vod'){const x=document.createElement('button');x.className='dlb';x.dataset.dl=1;x.innerHTML=DLI;x.setAttribute('aria-label','Baixar');d.append(x)}
+  return d;
 }
 function more(){
   const f=document.createDocumentFragment();
@@ -383,8 +425,11 @@ function drawEps(){
     const b=document.createElement('button');b.className='ep';
     b.innerHTML='<b></b><span></span><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>';
     b.firstChild.textContent=x.e;b.children[1].textContent=x.name;
-    b.onclick=()=>play({name:it.name+' · T'+x.s+'E'+x.e,logo:it.logo,group:it.group,type:'vod',url:x.url});
-    L.append(b);
+    const ep={name:it.name+' · T'+x.s+'E'+x.e,logo:it.logo,group:it.group,type:'vod',url:x.url};
+    b.onclick=()=>play(ep);
+    const w=document.createElement('div');w.className='epr';
+    const dd=document.createElement('button');dd.className='dlx';dd.innerHTML=DLI;dd.setAttribute('aria-label','Baixar episódio');dd.onclick=()=>download(ep);
+    w.append(b,dd);L.append(w);
   });
 }
 /* ---------- Reprodução ---------- */
@@ -410,16 +455,28 @@ function start(u,fb){
   }else v.src=abs(src);
   v.play().catch(()=>{});
 }
+const ARS=[['Ajustar','contain'],['Preencher','cover'],['Esticar','fill'],['16:9',16/9],['4:3',4/3]];
+let ai=+LS.get('ar')||0;
+function applyAR(show){
+  const m=ARS[ai][1];v.style.cssText='';
+  if(typeof m==='string')v.style.objectFit=m;
+  else{const W=pl.clientWidth,H=pl.clientHeight;let w=W,h=W/m;if(h>H){h=H;w=H*m}
+    v.style.cssText='left:50%;top:50%;right:auto;bottom:auto;width:'+w+'px;height:'+h+'px;transform:translate(-50%,-50%);object-fit:fill'}
+  if(show)toast('Proporção: '+ARS[ai][0]);
+}
+$('#ar').onclick=e=>{e.stopPropagation();ai=(ai+1)%ARS.length;LS.set('ar',ai);applyAR(true);peek()};
+addEventListener('resize',()=>{if(!pl.hidden)applyAR()});
 function play(it){
   cur=it;fail('');
   rec=[it,...rec.filter(x=>x.url!==it.url)].slice(0,12);LS.set('rec',rec);
   $('#np').textContent=it.name;
   pl.hidden=false;document.body.classList.add('lock');
   pl.classList.toggle('live',it.type==='live');$('#lvb').hidden=it.type!=='live';
-  $('#sk').value=0;$('#t1').textContent='0:00';$('#t2').textContent='0:00';peek();
+  $('#sk').value=0;$('#t1').textContent='0:00';$('#t2').textContent='0:00';peek();applyAR();$('#pd').hidden=it.type==='live'||!!it.local;
   const u=it.url,xt=/\/\d+(\.ts)?(\?.*)?$/i;
   if(it.alt)start(u,()=>start(it.alt));
   else if(it.type==='live'&&xt.test(u))start(u.replace(/(\/\d+)(\.ts)?(\?.*)?$/i,'$1.m3u8$3'),()=>start(u));
+  else if(it.local){kill();v.src=u;v.play().catch(()=>{})}
   else start(u);
 }
 function closeP(){
@@ -455,17 +512,77 @@ document.addEventListener('keydown',e=>{
   if(e.key===' '){e.preventDefault();v.paused?v.play():v.pause()}
   if(e.key==='ArrowLeft')v.currentTime-=10;if(e.key==='ArrowRight')v.currentTime+=10;
 });
+/* ---------- Downloads ---------- */
+const FS=()=>window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Filesystem;
+const DLI='<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 11l4.5 4.5 4.5-4.5M5 19.5h14"/></svg>';
+let dls=LS.get('dls')||[],tt=null;dls.forEach(d=>{if(d.st==='run')d.st='err'});
+const saveD=()=>LS.set('dls',dls);
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('on'),2200)}
+const extOf=u=>{const m=u.split('?')[0].match(/\.(mp4|mkv|avi|mov|webm|ts|m4v)$/i);return m?m[1].toLowerCase():'mp4'};
+const fm=b=>b>=1e9?(b/1e9).toFixed(2)+' GB':Math.round(b/1e6)+' MB';
+async function download(it){
+  if(it.type==='series')return toast('Abra a série e baixe um episódio.');
+  if(it.type==='live'||/\.m3u8(\?|$)/i.test(it.url))return toast('Transmissões ao vivo não podem ser baixadas.');
+  if(!NATIVE||!FS()){window.open(px(abs(it.url)),'_blank');return toast('Download aberto pelo navegador.')}
+  if(dls.some(d=>d.url===it.url&&d.st!=='err'))return toast('Esse item já está nos downloads.');
+  dls=dls.filter(d=>d.url!==it.url);
+  const d={id:'d'+Date.now(),name:it.name,logo:it.logo,group:it.group,url:it.url,st:'run',b:0,t:0};
+  d.path='downloads/'+d.id+'.'+extOf(it.url);dls.unshift(d);saveD();toast('Download iniciado');if(tab==='dl')renderDL();
+  try{await FS().downloadFile({url:it.url,path:d.path,directory:'DATA',recursive:true,progress:true,headers:{'User-Agent':'VLC/3.0.20 LibVLC/3.0.20'}});d.st='done';d.size=d.t||d.b}
+  catch(e){d.st='err';d.msg=String(e&&e.message||e)}
+  saveD();if(tab==='dl')renderDL();
+}
+function upBar(d){
+  if(tab!=='dl')return;const r=document.querySelector('[data-d="'+d.id+'"]');if(!r)return;
+  const p=d.t?Math.min(100,d.b/d.t*100):0;
+  r.querySelector('.st').textContent=fm(d.b)+(d.t?' de '+fm(d.t)+' · '+Math.round(p)+'%':'');
+  r.querySelector('.pr b').style.width=p+'%';
+}
+if(FS()&&FS().addListener)FS().addListener('progress',ev=>{const d=dls.find(x=>x.url===ev.url&&x.st==='run');if(!d)return;d.b=ev.bytes;d.t=ev.contentLength;upBar(d)});
+async function playLocal(d){
+  try{const r=await FS().getUri({path:d.path,directory:'DATA'});
+    play({name:d.name,logo:d.logo,group:d.group,type:'vod',url:Capacitor.convertFileSrc(r.uri),local:true})}
+  catch(e){toast('Arquivo não encontrado. Baixe de novo.')}
+}
+function renderDL(){
+  const L=$('#dll');L.innerHTML='';
+  $('#dlh').textContent=NATIVE&&FS()?'Os arquivos ficam guardados dentro do app.':'Os downloads salvos no aparelho só funcionam no app. No navegador, o arquivo baixa pelo próprio navegador.';
+  if(!dls.length){L.innerHTML='<p class="s2">Nenhum download ainda. Toque no ícone de download em um filme, em um episódio ou no player.</p>';return}
+  dls.forEach(d=>{
+    const r=document.createElement('div');r.className='dr';r.dataset.d=d.id;
+    const i=document.createElement('i');i.style.background=grad(d.name);i.append(logo(d));
+    const t=document.createElement('div');t.className='dt';
+    t.innerHTML='<span class="n"></span><span class="st"></span><div class="pr"><b></b></div>';
+    t.querySelector('.n').textContent=d.name;
+    const st=t.querySelector('.st'),pr=t.querySelector('.pr');
+    if(d.st==='done'){st.textContent=fm(d.size||0)+' · toque para assistir';pr.hidden=true}
+    else if(d.st==='err'){st.textContent='Falhou · toque para tentar de novo';st.classList.add('bad');pr.hidden=true}
+    else{const p=d.t?Math.min(100,d.b/d.t*100):0;st.textContent=fm(d.b)+(d.t?' de '+fm(d.t)+' · '+Math.round(p)+'%':'');pr.firstChild.style.width=p+'%'}
+    r.append(i,t);
+    if(d.st!=='run'){
+      const x=document.createElement('button');x.className='dx';x.setAttribute('aria-label','Remover');
+      x.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V4.5h4V7M7 7l1 12h8l1-12"/></svg>';
+      x.onclick=e=>{e.stopPropagation();if(FS())FS().deleteFile({path:d.path,directory:'DATA'}).catch(()=>{});dls=dls.filter(y=>y!==d);saveD();renderDL()};
+      r.append(x);
+    }
+    r.onclick=()=>{if(d.st==='done')playLocal(d);else if(d.st==='err')download({name:d.name,logo:d.logo,group:d.group,url:d.url,type:'vod'})};
+    L.append(r);
+  });
+}
+$('#pd').onclick=e=>{e.stopPropagation();if(cur)download(cur)};
 /* ---------- Eventos ---------- */
 const openS=()=>{$('#setup').hidden=false};
 $('#oe').onclick=openS;$('#bs').onclick=openS;
 $('#bf').onclick=()=>{const t=tab==='fav'?'home':'fav';setTab(t);fillG();filter();scrollTo(0,0)};
-['setup','sr'].forEach(id=>$('#'+id).addEventListener('click',e=>{if(e.target.id===id)$('#'+id).hidden=true}));
+['setup','sr','gs'].forEach(id=>$('#'+id).addEventListener('click',e=>{if(e.target.id===id)$('#'+id).hidden=true}));
 $('#st').onclick=e=>{const p=e.target.dataset.p;if(!p)return;
   document.querySelectorAll('#st button').forEach(b=>b.classList.toggle('on',b===e.target));
   $('#p-m').hidden=p!=='m';$('#p-x').hidden=p!=='x';};
 $('#ft').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   setTab(b.dataset.t);fillG();filter();scrollTo(0,0);};
 $('#bm').onclick=loadM3U;$('#bx').onclick=loadX;
+$('#gb').onclick=()=>{$('#gq').value='';drawG();$('#gs').hidden=false};$('#gq').oninput=drawG;
+$('#bdel').onclick=()=>{items=[];XC=null;DB.del('lib');$('#bdel').hidden=true;msg('Lista salva removida.');fillG();filter()};
 $('#q').oninput=filter;$('#g').onchange=filter;
 const openIt=i=>i.type==='series'?openSeries(i):play(i);
 function toggleFav(i,fb){
@@ -476,6 +593,7 @@ $('main').addEventListener('click',e=>{
   if(e.target.closest('#hw')&&hl[hi])return openIt(hl[hi]);
   if(e.target.closest('#hl')&&hl[hi]){toggleFav(hl[hi]);$('#hl').textContent=favs.has(hl[hi].url)?'Na minha lista':'+ Minha lista';return}
   const d=e.target.closest('.tl,.rc');if(!d||!d.it)return;
+  if(e.target.closest('[data-dl]'))return download(d.it);
   const fb=e.target.closest('[data-fav]');
   if(fb)return toggleFav(d.it,fb);
   openIt(d.it);
@@ -498,6 +616,11 @@ const c=LS.get('cfg');
 if(c){['mu','xs','xu','xp','srv','fmt'].forEach(k=>{if(c[k]!==undefined&&$('#'+k))$('#'+k).value=c[k]})}
 $('#empty').hidden=false;
 detect();
+DB.get('lib').then(d=>{
+  if(!d||!d.items||!d.items.length)return;
+  items=d.items;XC=d.XC||null;fillG();filter();$('#bdel').hidden=false;
+  msg('Lista salva: '+items.length+' itens.');
+});
 
 })();
 </script>
