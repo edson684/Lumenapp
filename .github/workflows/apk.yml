@@ -1,0 +1,46 @@
+name: Gerar APK
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Instalar dependências
+        run: npm install
+      - name: Criar projeto Android
+        run: |
+          npx cap add android
+          sed -i 's/<application/<application android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
+          sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
+          npx cap sync android
+      - name: Usar a chave de assinatura fixa
+        run: |
+          mkdir -p ~/.android
+          cp ci/debug.keystore ~/.android/debug.keystore
+      - name: Compilar APK
+        working-directory: android
+        run: ./gradlew assembleDebug
+      - name: Renomear
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk Lumen.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Lumen-apk
+          path: Lumen.apk
+      - name: Publicar na aba Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Lumen 1.0.${{ github.run_number }}
+          files: Lumen.apk
