@@ -94,6 +94,7 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.3px;margin:22px 20px 10px}
 .rr,.chips{overflow-y:hidden;overscroll-behavior-x:contain}
 .mp{width:112px}.mmeta{font-size:12px;color:var(--mu);margin-top:6px}#mpl{margin:0;font-size:14px;line-height:1.5;color:#d4d4d8;max-height:34dvh;overflow:auto}
 .mrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#ex{position:absolute;left:50%;top:50%;transform:translate(-50%,96px);width:min(300px,80%);z-index:2}
 </style>
 </head>
 <body>
@@ -160,6 +161,7 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.3px;margin:22px 20px 10px}
     <div class="bot"><span class="sb" id="t1">0:00</span><input class="sb" id="sk" type="range" min="0" max="1000" value="0" aria-label="Posição"><span class="sb" id="t2">0:00</span><span style="flex:1" class="lvs"></span><button class="rd g" id="ar" aria-label="Proporção da tela"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M7 10V9.500h.5M17 14v.5h-.5"/></svg></button><button class="rd g" id="fs" aria-label="Tela cheia"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button></div>
   </div>
   <div id="er"></div>
+  <button class="btn g2" id="ex" hidden>Abrir em outro player</button>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.13/dist/hls.min.js"></script>
@@ -174,6 +176,7 @@ const v=$('#v'),pl=$('#pl');
 const msg=(t,bad)=>{const m=$('#msg');m.textContent=t;m.className=bad?'bad':''};
 let SRV=false,BASE='',KEY=LS.get('key')||'';
 const NATIVE=!!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());
+try{const U0=NATIVE&&Capacitor.Plugins.CapacitorUpdater;if(U0&&U0.notifyAppReady)U0.notifyAppReady()}catch(e){}
 const px=u=>SRV?BASE+'/p?u='+encodeURIComponent(u)+(KEY?'&k='+encodeURIComponent(KEY):''):u;
 const abs=u=>new URL(u,location.href).href;
 async function detect(){
@@ -450,7 +453,7 @@ function kill(){
   if(mp){try{mp.destroy()}catch(e){}mp=null}
   v.removeAttribute('src');v.load();
 }
-const fail=t=>{$('#er').textContent=t};
+const fail=t=>{$('#er').textContent=t;v.style.visibility=t?'hidden':'';$('#ex').hidden=!t||!NATIVE||!LN()};
 function start(u,fb){
   kill();
   const src=px(u);
@@ -496,7 +499,8 @@ function closeP(){
   if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
   try{screen.orientation.unlock()}catch(e){}
 }
-v.addEventListener('error',()=>{if(cur&&!hls&&!mp&&v.getAttribute('src'))fail(SRV||NATIVE?'Não foi possível abrir este arquivo (formato não suportado pelo navegador ou arquivo indisponível).':'Sem servidor proxy, o navegador pode bloquear este endereço.')});
+v.addEventListener('error',()=>{if(cur&&!hls&&!mp&&v.getAttribute('src')){const c=v.error&&v.error.code;
+  fail(NATIVE?(cur.local?'Este arquivo não pôde ser reproduzido aqui (formato ou codec não suportado, código '+c+'). Abra em outro player, como o VLC.':'Não foi possível reproduzir este vídeo aqui (código '+c+'). Tente abrir em outro player.'):(SRV?'Não foi possível abrir este arquivo (formato não suportado pelo navegador ou arquivo indisponível).':'Sem servidor proxy, o navegador pode bloquear este endereço.'))}});
 /* controles do player */
 const fmt=s=>{if(!isFinite(s))return '0:00';s=Math.floor(s);const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
 let ht=null;
@@ -543,7 +547,7 @@ async function download(it){
   if(dls.some(d=>d.url===it.url&&d.st!=='err'))return toast('Esse item já está nos downloads.');
   dls=dls.filter(d=>d.url!==it.url);
   const d={id:'d'+Date.now(),name:it.name,logo:it.logo,group:it.group,url:it.url,st:'run',b:0,t:0};
-  try{const r=await LN().startDownload({url:it.url,name:safe(it.name)+'-'+(Date.now()%1e6)+'.'+extOf(it.url),title:it.name});d.dm=r.id}
+  try{const r=await LN().startDownload({url:it.url,name:safe(it.name)+'-'+(Date.now()%1e6)+'.'+extOf(it.url),title:it.name});d.dm=r.id;d.path=r.path}
   catch(e){return toast('Não foi possível iniciar o download: '+(e&&e.message||e))}
   dls.unshift(d);saveD();toast('Download iniciado. Acompanhe na aba Downloads.');if(tab==='dl')renderDL();poll();
 }
@@ -564,7 +568,13 @@ function poll(){
       try{
         const r=await LN().downloadStatus({id:d.dm});
         d.b=r.bytes||0;d.t=r.total>0?r.total:0;
-        if(r.status===8){d.st='done';d.size=d.t||d.b;d.uri=r.uri;ch=true}
+        if(r.status===8){
+          let fi={exists:true,size:r.bytes||0};
+          if(d.path)try{fi=await LN().fileInfo({path:d.path})}catch(e){}
+          if(!fi.exists){d.st='err';d.msg='arquivo não encontrado'}
+          else if(fi.size<3e6){d.st='err';d.msg='o servidor não enviou o vídeo, só '+Math.round(fi.size/1024)+' KB'}
+          else{d.st='done';d.size=fi.size;d.uri=r.uri}
+          ch=true}
         else if(r.status===16||r.status===-1){d.st='err';d.msg=r.status===-1?'removido':'código '+r.reason;ch=true}
         else upBar(d);
       }catch(e){}
@@ -572,10 +582,17 @@ function poll(){
     saveD();if(ch&&tab==='dl')renderDL();
   },1500);
 }
+function localPath(d){return d.path||(d.uri&&d.uri.startsWith('file://')?decodeURIComponent(d.uri.slice(7)):'')}
 function playLocal(d){
-  if(!d.uri)return toast('Arquivo não encontrado. Baixe de novo.');
-  play({name:d.name,logo:d.logo,group:d.group,type:'vod',url:Capacitor.convertFileSrc(d.uri),local:true});
+  const p=localPath(d);
+  if(!p)return toast('Não foi possível localizar o arquivo. Remova e baixe de novo.');
+  play({name:d.name,logo:d.logo,group:d.group,type:'vod',url:Capacitor.convertFileSrc('file://'+encodeURI(p)),local:true,path:p});
 }
+function openExt(){
+  if(!cur||!LN())return;
+  LN().openExternal(cur.local?{path:cur.path}:{url:cur.url}).catch(e=>toast((e&&e.message)||'Nenhum player encontrado'));
+}
+$('#ex').onclick=e=>{e.stopPropagation();openExt()};
 function renderDL(){
   const L=$('#dll');L.innerHTML='';
   $('#dlh').textContent=NATIVE&&LN()?'Os downloads continuam mesmo com o app fechado.':'Os downloads salvos no aparelho só funcionam no app. No navegador, o arquivo baixa pelo próprio navegador.';
@@ -629,20 +646,30 @@ async function openMovie(it){
 }
 /* ---------- Atualização do app ---------- */
 const REPO='edson684/lumenapp';let UPD=null;
+const tagN=r=>+((String(r.tag_name).match(/(\d+)$/)||[])[1])||0;
 async function checkUpd(manual){
-  const A=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App;
+  const P=window.Capacitor&&Capacitor.Plugins||{},A=P.App,U=P.CapacitorUpdater;
   if(!NATIVE||!A||!A.getInfo){if(manual)toast('A verificação só funciona no app.');return}
   $('#bup').hidden=false;
   try{
     const inf=await A.getInfo(),cur=+inf.build||0;
-    $('#ver').textContent='Versão instalada: '+inf.version+' (compilação '+inf.build+')';
-    const r=await fetch('https://api.github.com/repos/'+REPO+'/releases/latest');
+    let curN=cur,bv='';
+    if(U&&U.current){const c=await U.current();bv=(c.bundle&&c.bundle.version)||'';if(bv&&bv!=='builtin')curN=+((bv.match(/(\d+)$/)||[])[1])||cur}
+    $('#ver').textContent='App '+inf.version+'.'+inf.build+' · interface '+(bv&&bv!=='builtin'?bv:'original');
+    const r=await fetch('https://api.github.com/repos/'+REPO+'/releases?per_page=15');
     if(!r.ok)throw Error(r.status===404?'repositório privado ou sem versões':'HTTP '+r.status);
-    const j=await r.json(),n=+((String(j.tag_name).match(/(\d+)$/)||[])[1])||0;
-    const a=(j.assets||[]).find(x=>/\.apk$/i.test(x.name));
-    if(n>cur&&a){UPD={url:a.browser_download_url};$('#upt').textContent='Nova versão disponível: '+String(j.tag_name).replace(/^v/,'');$('#upd').hidden=false;if(manual)$('#setup').hidden=true}
-    else if(manual)toast('Você já está na versão mais recente.');
-  }catch(e){if(manual)toast('Não foi possível verificar: '+e.message)}
+    const list=await r.json();if(!list.length)return;
+    list.sort((x,y)=>tagN(y)-tagN(x));
+    const ar=list.find(x=>/APK_REQUIRED/.test(x.body||'')),aa=ar&&(ar.assets||[]).find(x=>/\.apk$/i.test(x.name));
+    if(ar&&aa&&tagN(ar)>cur){UPD={url:aa.browser_download_url};$('#upt').textContent='Nova versão do app disponível: '+String(ar.tag_name).replace(/^v/,'');$('#upd').hidden=false;if(manual)$('#setup').hidden=true;return}
+    const last=list[0],ba=(last.assets||[]).find(x=>x.name==='bundle.zip');
+    if(!U||!ba){if(manual)toast('Você já está na versão mais recente.');return}
+    if(tagN(last)>curN){
+      const bu=await U.download({url:ba.browser_download_url,version:String(last.tag_name).replace(/^v/,'')});
+      if(manual){toast('Atualizando...');await U.set(bu)}
+      else{await U.next(bu);toast('Atualização pronta. Será aplicada ao reabrir o app.')}
+    }else if(manual)toast('Você já está na versão mais recente.');
+  }catch(e){if(manual)toast('Não foi possível verificar: '+(e&&e.message||e))}
 }
 function getUpd(){
   if(!UPD)return;const B=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Browser;

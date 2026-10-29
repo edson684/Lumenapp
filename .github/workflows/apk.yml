@@ -26,6 +26,8 @@ jobs:
           sed -i "s/versionCode 1/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
           mkdir -p android/app/src/main/java/com/lumen/iptv
           cp native/*.java android/app/src/main/java/com/lumen/iptv/
+          mkdir -p android/app/src/main/res/xml
+          cp native/file_paths.xml android/app/src/main/res/xml/file_paths.xml
           npx cap sync android
       - name: Usar a chave de assinatura fixa
         run: |
@@ -35,7 +37,9 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug
       - name: Renomear
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk Lumen.apk
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk Lumen.apk
+          cd www && zip -qr ../bundle.zip . && cd ..
       - uses: actions/upload-artifact@v4
         with:
           name: Lumen-apk
@@ -45,4 +49,7 @@ jobs:
         with:
           tag_name: v1.0.${{ github.run_number }}
           name: Lumen 1.0.${{ github.run_number }}
-          files: Lumen.apk
+          files: |
+            Lumen.apk
+            bundle.zip
+          body: ${{ contains(github.event.head_commit.message, '[apk]') && 'APK_REQUIRED' || 'OTA' }}

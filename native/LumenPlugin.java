@@ -1,7 +1,9 @@
 package com.lumen.iptv;
 
 import android.app.DownloadManager;
+import android.content.ClipData;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.net.Uri;
@@ -9,6 +11,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.view.Window;
 import android.view.WindowManager;
+import androidx.core.content.FileProvider;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -17,6 +20,7 @@ import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import java.io.File;
 
 @CapacitorPlugin(name = "Lumen")
 public class LumenPlugin extends Plugin {
@@ -80,6 +84,7 @@ public class LumenPlugin extends Plugin {
       long id = dm.enqueue(r);
       JSObject o = new JSObject();
       o.put("id", String.valueOf(id));
+      o.put("path", new File(getContext().getExternalFilesDir(Environment.DIRECTORY_MOVIES), name).getAbsolutePath());
       call.resolve(o);
     } catch (Exception e) {
       call.reject("Falha ao iniciar: " + e.getMessage());
@@ -119,6 +124,53 @@ public class LumenPlugin extends Plugin {
       call.resolve();
     } catch (Exception e) {
       call.reject("Falha ao remover: " + e.getMessage());
+    }
+  }
+
+  @PluginMethod
+  public void fileInfo(PluginCall call) {
+    String path = call.getString("path", "");
+    File f = new File(path);
+    JSObject o = new JSObject();
+    boolean ok = f.exists();
+    o.put("exists", ok);
+    o.put("size", ok ? f.length() : 0L);
+    call.resolve(o);
+  }
+
+  private String mimeFor(String p) {
+    String s = p.toLowerCase();
+    if (s.endsWith(".mkv")) return "video/x-matroska";
+    if (s.endsWith(".avi")) return "video/x-msvideo";
+    if (s.endsWith(".webm")) return "video/webm";
+    if (s.endsWith(".ts")) return "video/mp2t";
+    return "video/mp4";
+  }
+
+  @PluginMethod
+  public void openExternal(PluginCall call) {
+    try {
+      String path = call.getString("path");
+      String url = call.getString("url");
+      Intent i = new Intent(Intent.ACTION_VIEW);
+      if (path != null && !path.isEmpty()) {
+        File f = new File(path);
+        Uri uri = FileProvider.getUriForFile(getContext(), getContext().getPackageName() + ".fileprovider", f);
+        i.setDataAndType(uri, mimeFor(path));
+        i.setClipData(ClipData.newRawUri("", uri));
+        i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+      } else if (url != null) {
+        i.setDataAndType(Uri.parse(url), "video/*");
+      } else {
+        call.reject("Nada para abrir");
+        return;
+      }
+      Intent ch = Intent.createChooser(i, "Abrir com");
+      ch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+      getContext().startActivity(ch);
+      call.resolve();
+    } catch (Exception e) {
+      call.reject("Nenhum player encontrado: " + e.getMessage());
     }
   }
 }

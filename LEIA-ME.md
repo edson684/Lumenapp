@@ -20,3 +20,7 @@ Ao abrir, o app consulta as versões publicadas em Releases do repositório edso
 
 ## Arquivos nativos (pasta native/)
 LumenPlugin.java e MainActivity.java são copiados para o projeto Android durante a compilação. Eles cuidam da tela cheia sem barras do sistema e dos downloads pelo gerenciador do Android (com notificação, em segundo plano).
+
+## Atualização automática
+A interface (www/) é atualizada sozinha: a cada push o GitHub publica o APK e um bundle.zip. O app baixa o bundle ao abrir e aplica na próxima abertura. Se a interface nova tiver erro, o app volta sozinho para a anterior.
+Quando a mudança mexer no código nativo (pasta native/, package.json ou capacitor.config.json), escreva [apk] na mensagem do commit. Aí o app mostra o aviso para baixar o APK novo.
