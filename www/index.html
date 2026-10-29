@@ -481,6 +481,17 @@ function applyAR(show){
 }
 $('#ar').onclick=e=>{e.stopPropagation();ai=(ai+1)%ARS.length;LS.set('ar',ai);applyAR(true);peek()};
 addEventListener('resize',()=>{if(!pl.hidden)applyAR()});
+/* Player nativo (ExoPlayer): filmes e episódios. Se falhar ou não existir (APK antigo), cai no player interno. */
+let npTok=0,npOn=false;
+function playNative(it,web){
+  const tok=++npTok;npOn=true;
+  const a=it.local&&it.path?{path:it.path}:{url:it.url};a.title=it.name;
+  let p;try{p=LN().playNative(a)}catch(e){p=Promise.reject(e)}
+  Promise.resolve(p).then(()=>{if(tok===npTok&&npOn){npOn=false;closeP()}},e=>{
+    if(tok!==npTok)return;npOn=false;
+    if(e&&e.code==='PLAYER_ERROR'&&e.message)toast('Player nativo: '+e.message+'. Tentando o player interno...');
+    web()});
+}
 function play(it){
   cur=it;fail('');
   rec=[it,...rec.filter(x=>x.url!==it.url)].slice(0,12);LS.set('rec',rec);
@@ -489,12 +500,16 @@ function play(it){
   pl.classList.toggle('live',it.type==='live');$('#lvb').hidden=it.type!=='live';
   $('#sk').value=0;$('#t1').textContent='0:00';$('#t2').textContent='0:00';peek();applyAR();$('#pd').hidden=it.type==='live'||!!it.local;
   const u=it.url,xt=/\/\d+(\.ts)?(\?.*)?$/i;
-  if(it.alt)start(u,()=>start(it.alt));
-  else if(it.type==='live'&&xt.test(u))start(u.replace(/(\/\d+)(\.ts)?(\?.*)?$/i,'$1.m3u8$3'),()=>start(u));
-  else if(it.local){kill();v.src=u;v.play().catch(()=>{})}
-  else start(u);
+  const web=()=>{
+    if(it.alt)start(u,()=>start(it.alt));
+    else if(it.type==='live'&&xt.test(u))start(u.replace(/(\/\d+)(\.ts)?(\?.*)?$/i,'$1.m3u8$3'),()=>start(u));
+    else if(it.local){kill();v.src=u;v.play().catch(()=>{})}
+    else start(u);
+  };
+  if(NATIVE&&LN()&&it.type!=='live')playNative(it,web);else web();
 }
 function closeP(){
+  if(npOn){npOn=false;npTok++;try{LN().stopNative().catch(()=>{})}catch(e){}}
   kill();pl.hidden=true;document.body.classList.remove('lock');renderRec();if(LN())LN().exit().catch(()=>{});
   if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
   try{screen.orientation.unlock()}catch(e){}

@@ -31,6 +31,14 @@ jobs:
           sed -i 's/compileSdkVersion = [0-9]*/compileSdkVersion = 35/' android/variables.gradle
           sed -i 's/minSdkVersion = [0-9]*/minSdkVersion = 23/' android/variables.gradle
           echo 'android.suppressUnsupportedCompileSdk=35' >> android/gradle.properties
+          cat >> android/app/build.gradle <<'EOF'
+
+          dependencies {
+              implementation 'androidx.media3:media3-exoplayer:1.4.1'
+              implementation 'androidx.media3:media3-exoplayer-hls:1.4.1'
+              implementation 'androidx.media3:media3-ui:1.4.1'
+          }
+          EOF
           npx cap sync android
       - name: Usar a chave de assinatura fixa
         run: |
