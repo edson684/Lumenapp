@@ -14,3 +14,9 @@ O app roda sozinho no celular: as requisições a listas e canais são feitas pe
 3. Baixe e instale POR CIMA do app antigo. Seus dados (fontes, favoritos, recentes) continuam.
 
 A chave de assinatura fica em ci/debug.keystore. Não apague nem troque esse arquivo: é ela que permite instalar por cima. Mantenha o repositório privado.
+
+## Aviso de atualização dentro do app
+Ao abrir, o app consulta as versões publicadas em Releases do repositório edson684/lumenapp (precisa ser PÚBLICO) e mostra um aviso quando existe APK mais novo. Também há o botão "Verificar atualização" em Fontes.
+
+## Arquivos nativos (pasta native/)
+LumenPlugin.java e MainActivity.java são copiados para o projeto Android durante a compilação. Eles cuidam da tela cheia sem barras do sistema e dos downloads pelo gerenciador do Android (com notificação, em segundo plano).
