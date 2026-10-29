@@ -29,6 +29,7 @@ jobs:
           mkdir -p android/app/src/main/res/xml
           cp native/file_paths.xml android/app/src/main/res/xml/file_paths.xml
           sed -i 's/compileSdkVersion = [0-9]*/compileSdkVersion = 35/' android/variables.gradle
+          sed -i 's/minSdkVersion = [0-9]*/minSdkVersion = 23/' android/variables.gradle
           echo 'android.suppressUnsupportedCompileSdk=35' >> android/gradle.properties
           npx cap sync android
       - name: Usar a chave de assinatura fixa
