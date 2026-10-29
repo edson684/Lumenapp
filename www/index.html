@@ -90,6 +90,7 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.3px;margin:22px 20px 10px}
 .dr{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--ln);cursor:pointer}.dr i{position:relative;width:96px;height:56px;border-radius:10px;overflow:hidden;flex:none}.dr i img{position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);object-fit:contain}
 .dt{flex:1;min-width:0}.dt .n{display:block;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dt .st{display:block;font-size:12px;color:var(--mu);margin-top:2px}.dt .pr{margin:6px 0 0}.dt .pr b{background:var(--ac)}.dt .st.bad{color:#ff6961}
 .dx{width:40px;height:40px;flex:none;color:var(--mu);display:flex;align-items:center;justify-content:center}
+.up{display:flex;align-items:center;gap:10px;margin:12px 20px 0;padding:12px 12px 12px 16px;border-radius:16px;background:linear-gradient(135deg,#0050c8,#4240b8);font-size:14px;font-weight:600}.up span{flex:1}.up .ub{background:#fff;color:#0b0b0f;border-radius:14px;padding:8px 14px;font-weight:700;flex:none}.up .ux{width:30px;height:30px;color:#fff;opacity:.85;flex:none;display:flex;align-items:center;justify-content:center}
 </style>
 </head>
 <body>
@@ -97,6 +98,7 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.3px;margin:22px 20px 10px}
 <div class="fl"><input id="q" type="search" placeholder="Buscar canal, filme ou série" aria-label="Buscar"><button class="gb" id="gb" aria-label="Categoria"><span id="gl">Todas as categorias</span><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg></button><select id="g" hidden></select></div></header>
 
 <main>
+  <div id="upd" class="up" hidden><span id="upt"></span><button class="ub" id="upb">Baixar</button><button class="ux" id="upx" aria-label="Fechar"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div id="empty" hidden><h2>Bem-vindo ao Lumen</h2><p>Adicione sua lista M3U ou sua conta Xtream para começar.</p><button class="btn" id="oe">Adicionar fonte</button></div>
   <div id="homec" hidden><div id="hero" hidden></div><section id="recs" hidden><h3>Continuar assistindo</h3><div class="rr" id="rr"></div></section><div id="rows"></div></div>
   <div id="dlc" hidden><h3>Downloads</h3><p class="s2" id="dlh"></p><div id="dll"></div></div>
@@ -131,6 +133,7 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.3px;margin:22px 20px 10px}
   <input id="srv" placeholder="Servidor proxy (só se o site estiver hospedado em outro lugar)" inputmode="url" autocapitalize="off" aria-label="Servidor proxy">
   <div id="msg"></div>
   <button class="btn g2" id="bdel" hidden>Limpar lista salva</button>
+  <div class="s2" id="ver"></div><button class="btn g2" id="bup" hidden>Verificar atualização</button>
 </section></div>
 
 <div id="sr" class="ov" hidden><section class="sheet" role="dialog" aria-label="Série"><div class="gr"></div><div class="sh"><div class="sp" id="sp"></div><div><h2 id="sn"></h2><small id="sg"></small></div></div><p id="spl"></p><div class="chips" id="sc"></div><div id="se"></div></section></div>
@@ -570,6 +573,28 @@ function renderDL(){
   });
 }
 $('#pd').onclick=e=>{e.stopPropagation();if(cur)download(cur)};
+/* ---------- Atualização do app ---------- */
+const REPO='edson684/lumenapp';let UPD=null;
+async function checkUpd(manual){
+  const A=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.App;
+  if(!NATIVE||!A||!A.getInfo){if(manual)toast('A verificação só funciona no app.');return}
+  $('#bup').hidden=false;
+  try{
+    const inf=await A.getInfo(),cur=+inf.build||0;
+    $('#ver').textContent='Versão instalada: '+inf.version+' (compilação '+inf.build+')';
+    const r=await fetch('https://api.github.com/repos/'+REPO+'/releases/latest');
+    if(!r.ok)throw Error(r.status===404?'repositório privado ou sem versões':'HTTP '+r.status);
+    const j=await r.json(),n=+((String(j.tag_name).match(/(\d+)$/)||[])[1])||0;
+    const a=(j.assets||[]).find(x=>/\.apk$/i.test(x.name));
+    if(n>cur&&a){UPD={url:a.browser_download_url};$('#upt').textContent='Nova versão disponível: '+String(j.tag_name).replace(/^v/,'');$('#upd').hidden=false;if(manual)$('#setup').hidden=true}
+    else if(manual)toast('Você já está na versão mais recente.');
+  }catch(e){if(manual)toast('Não foi possível verificar: '+e.message)}
+}
+function getUpd(){
+  if(!UPD)return;const B=window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Browser;
+  if(B&&B.open)B.open({url:UPD.url});else window.open(UPD.url,'_blank');
+  toast('Baixando. Ao terminar, toque na notificação para instalar.');
+}
 /* ---------- Eventos ---------- */
 const openS=()=>{$('#setup').hidden=false};
 $('#oe').onclick=openS;$('#bs').onclick=openS;
@@ -582,6 +607,7 @@ $('#ft').onclick=e=>{const b=e.target.closest('button');if(!b)return;
   setTab(b.dataset.t);fillG();filter();scrollTo(0,0);};
 $('#bm').onclick=loadM3U;$('#bx').onclick=loadX;
 $('#gb').onclick=()=>{$('#gq').value='';drawG();$('#gs').hidden=false};$('#gq').oninput=drawG;
+$('#upb').onclick=getUpd;$('#upx').onclick=()=>{$('#upd').hidden=true};$('#bup').onclick=()=>checkUpd(true);
 $('#bdel').onclick=()=>{items=[];XC=null;DB.del('lib');$('#bdel').hidden=true;msg('Lista salva removida.');fillG();filter()};
 $('#q').oninput=filter;$('#g').onchange=filter;
 const openIt=i=>i.type==='series'?openSeries(i):play(i);
@@ -616,6 +642,7 @@ const c=LS.get('cfg');
 if(c){['mu','xs','xu','xp','srv','fmt'].forEach(k=>{if(c[k]!==undefined&&$('#'+k))$('#'+k).value=c[k]})}
 $('#empty').hidden=false;
 detect();
+setTimeout(()=>checkUpd(false),2000);
 DB.get('lib').then(d=>{
   if(!d||!d.items||!d.items.length)return;
   items=d.items;XC=d.XC||null;fillG();filter();$('#bdel').hidden=false;
