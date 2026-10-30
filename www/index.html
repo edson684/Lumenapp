@@ -146,7 +146,7 @@ h3{font-size:19px;font-weight:700;letter-spacing:-.3px;margin:22px 20px 10px}
   <div class="sh"><div class="sp mp" id="mpo"></div><div><h2 id="mn"></h2><small id="mg"></small><div class="mmeta" id="mm"></div></div></div>
   <p id="mpl"></p>
   <button class="btn" id="mw"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true" style="vertical-align:-4px"><path d="M7 4.5v15l13-7.5z"/></svg> Assistir</button>
-  <div class="mrow"><button class="btn g2" id="mf">+ Minha lista</button><button class="btn g2" id="md">Baixar</button></div>
+  <div class="mrow"><button class="btn g2" id="mfv">+ Minha lista</button><button class="btn g2" id="md">Baixar</button></div>
 </section></div>
 <div id="gs" class="ov" hidden><section class="sheet" role="dialog" aria-label="Categorias"><div class="gr"></div><h2>Categorias</h2><input id="gq" type="search" placeholder="Buscar categoria" aria-label="Buscar categoria"><div class="gl" id="gl2"></div></section></div>
 <div id="toast" role="status"></div>
@@ -485,9 +485,11 @@ addEventListener('resize',()=>{if(!pl.hidden)applyAR()});
 let npTok=0,npOn=false;
 function playNative(it,web){
   const tok=++npTok;npOn=true;
-  const a=it.local&&it.path?{path:it.path}:{url:it.url};a.title=it.name;
+  const a=it.local&&it.path?{path:it.path}:{url:it.url};a.title=it.name;a.aspect=ai;
   let p;try{p=LN().playNative(a)}catch(e){p=Promise.reject(e)}
-  Promise.resolve(p).then(()=>{if(tok===npTok&&npOn){npOn=false;closeP()}},e=>{
+  Promise.resolve(p).then(r=>{
+    if(r&&typeof r.aspect==='number'&&r.aspect>=0&&r.aspect<ARS.length&&r.aspect!==ai){ai=r.aspect;LS.set('ar',ai)}
+    if(tok===npTok&&npOn){npOn=false;closeP()}},e=>{
     if(tok!==npTok)return;npOn=false;
     if(e&&e.code==='PLAYER_ERROR'&&e.message)toast('Player nativo: '+e.message+'. Tentando o player interno...');
     web()});
@@ -555,46 +557,77 @@ function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clea
 const extOf=u=>{const m=u.split('?')[0].match(/\.(mp4|mkv|avi|mov|webm|ts|m4v)$/i);return m?m[1].toLowerCase():'mp4'};
 const fm=b=>b>=1e9?(b/1e9).toFixed(2)+' GB':Math.round(b/1e6)+' MB';
 const safe=n=>(n.replace(/[^\w\- ]+/g,'').trim().slice(0,60)||'video');
+const DL_TRIES=3,dlBusy=new Set();
+const dlWhy=c=>c>=400&&c<600?'HTTP '+c:({1000:'erro desconhecido',1001:'erro de arquivo',1002:'resposta HTTP inesperada',1004:'conexão interrompida',1005:'redirecionamentos demais',1006:'sem espaço no aparelho',1007:'armazenamento indisponível',1008:'não foi possível retomar',1009:'arquivo já existe'})[c]||('código '+c);
+const dlText=d=>d.rt?'Tentando de novo ('+d.n+'/'+DL_TRIES+')...':fm(d.b)+(d.t?' de '+fm(d.t)+' · '+Math.round(Math.min(100,d.b/d.t*100))+'%':'')+(d.n>1?' · tentativa '+d.n:'');
+/* envia o pedido ao gerenciador de downloads do Android e guarda id e caminho no item */
+async function dlStart(d){
+  const r=await LN().startDownload({url:d.url,name:safe(d.name)+'-'+(Date.now()%1e6)+'.'+extOf(d.url),title:d.name});
+  d.dm=r.id;d.path=r.path;d.b=0;d.t=0;
+}
+function dlDrop(d){if(d.dm&&LN())LN().removeDownload({id:d.dm}).catch(()=>{});d.dm=null}
+/* falha: tenta sozinho de novo (servidores de IPTV costumam recusar a 1ª tentativa) antes de mostrar erro */
+function dlFail(d,msg,retry){
+  dlDrop(d);
+  if(retry&&(d.n||1)<DL_TRIES){d.n=(d.n||1)+1;d.rt=Date.now()+(d.n===2?3000:8000);d.b=0;d.t=0}
+  else{d.st='err';d.msg=msg;d.rt=0}
+}
 async function download(it){
   if(it.type==='series')return toast('Abra a série e baixe um episódio.');
   if(it.type==='live'||/\.m3u8(\?|$)/i.test(it.url))return toast('Transmissões ao vivo não podem ser baixadas.');
   if(!NATIVE||!LN()){window.open(px(abs(it.url)),'_blank');return toast('Download aberto pelo navegador.')}
+  if(dlBusy.has(it.url))return;
   if(dls.some(d=>d.url===it.url&&d.st!=='err'))return toast('Esse item já está nos downloads.');
-  dls=dls.filter(d=>d.url!==it.url);
-  const d={id:'d'+Date.now(),name:it.name,logo:it.logo,group:it.group,url:it.url,st:'run',b:0,t:0};
-  try{const r=await LN().startDownload({url:it.url,name:safe(it.name)+'-'+(Date.now()%1e6)+'.'+extOf(it.url),title:it.name});d.dm=r.id;d.path=r.path}
-  catch(e){return toast('Não foi possível iniciar o download: '+(e&&e.message||e))}
-  dls.unshift(d);saveD();toast('Download iniciado. Acompanhe na aba Downloads.');if(tab==='dl')renderDL();poll();
+  dlBusy.add(it.url);
+  try{
+    dls.filter(d=>d.url===it.url).forEach(dlDrop);
+    dls=dls.filter(d=>d.url!==it.url);
+    const d={id:'d'+Date.now(),name:it.name,logo:it.logo,group:it.group,url:it.url,st:'run',b:0,t:0,n:1,rt:0};
+    try{await dlStart(d)}
+    catch(e){return toast('Não foi possível iniciar o download: '+(e&&e.message||e))}
+    dls.unshift(d);saveD();toast('Download iniciado. Acompanhe na aba Downloads.');if(tab==='dl')renderDL();poll();
+  }finally{dlBusy.delete(it.url)}
 }
 function upBar(d){
   if(tab!=='dl')return;const r=document.querySelector('[data-d="'+d.id+'"]');if(!r||d.st!=='run')return;
   const p=d.t?Math.min(100,d.b/d.t*100):0;
-  r.querySelector('.st').textContent=fm(d.b)+(d.t?' de '+fm(d.t)+' · '+Math.round(p)+'%':'');
+  r.querySelector('.st').textContent=dlText(d);
   r.querySelector('.pr b').style.width=p+'%';
 }
+let pb=false;
 function poll(){
   clearInterval(pt);
   if(!LN()||!dls.some(d=>d.st==='run'))return;
   pt=setInterval(async()=>{
-    const run=dls.filter(d=>d.st==='run');
-    if(!run.length){clearInterval(pt);return}
-    let ch=false;
-    for(const d of run){
-      try{
-        const r=await LN().downloadStatus({id:d.dm});
-        d.b=r.bytes||0;d.t=r.total>0?r.total:0;
-        if(r.status===8){
-          let fi={exists:true,size:r.bytes||0};
-          if(d.path)try{fi=await LN().fileInfo({path:d.path})}catch(e){}
-          if(!fi.exists){d.st='err';d.msg='arquivo não encontrado'}
-          else if(fi.size<3e6){d.st='err';d.msg='o servidor não enviou o vídeo, só '+Math.round(fi.size/1024)+' KB'}
-          else{d.st='done';d.size=fi.size;d.uri=r.uri}
-          ch=true}
-        else if(r.status===16||r.status===-1){d.st='err';d.msg=r.status===-1?'removido':'código '+r.reason;ch=true}
-        else upBar(d);
-      }catch(e){}
-    }
-    saveD();if(ch&&tab==='dl')renderDL();
+    if(pb)return;pb=true;
+    try{
+      const run=dls.filter(d=>d.st==='run');
+      if(!run.length){clearInterval(pt);return}
+      let ch=false;
+      for(const d of run){
+        try{
+          if(d.rt){
+            if(Date.now()<d.rt)continue;
+            d.rt=0;ch=true;
+            try{await dlStart(d)}catch(e){dlFail(d,'não foi possível reiniciar',false)}
+            continue;
+          }
+          const r=await LN().downloadStatus({id:d.dm});
+          d.b=r.bytes||0;d.t=r.total>0?r.total:0;
+          if(r.status===8){
+            let fi={exists:true,size:r.bytes||0};
+            if(d.path)try{fi=await LN().fileInfo({path:d.path})}catch(e){}
+            if(!fi.exists)dlFail(d,'arquivo não encontrado',true);
+            else if(fi.size<3e6)dlFail(d,'o servidor não enviou o vídeo, só '+Math.round(fi.size/1024)+' KB',true);
+            else{d.st='done';d.size=fi.size;d.uri=r.uri}
+            ch=true}
+          else if(r.status===-1){d.st='err';d.msg='removido';d.dm=null;ch=true}
+          else if(r.status===16){dlFail(d,dlWhy(r.reason),![1006,1007,404].includes(r.reason));ch=true}
+          else upBar(d);
+        }catch(e){}
+      }
+      saveD();if(ch){if(tab==='dl')renderDL();if(!dls.some(d=>d.st==='run'))clearInterval(pt)}
+    }finally{pb=false}
   },1500);
 }
 function localPath(d){return d.path||(d.uri&&d.uri.startsWith('file://')?decodeURIComponent(d.uri.slice(7)):'')}
@@ -621,7 +654,7 @@ function renderDL(){
     const st=t.querySelector('.st'),pr=t.querySelector('.pr');
     if(d.st==='done'){st.textContent=fm(d.size||0)+' · toque para assistir';pr.hidden=true}
     else if(d.st==='err'){st.textContent='Falhou'+(d.msg?' ('+d.msg+')':'')+' · toque para tentar de novo';st.classList.add('bad');pr.hidden=true}
-    else{const p=d.t?Math.min(100,d.b/d.t*100):0;st.textContent=fm(d.b)+(d.t?' de '+fm(d.t)+' · '+Math.round(p)+'%':'');pr.firstChild.style.width=p+'%'}
+    else{const p=d.t?Math.min(100,d.b/d.t*100):0;st.textContent=dlText(d);pr.firstChild.style.width=p+'%'}
     r.append(i,t);
     const x=document.createElement('button');x.className='dx';x.setAttribute('aria-label',d.st==='run'?'Cancelar':'Remover');
     x.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
@@ -645,10 +678,10 @@ async function openMovie(it){
     $('#mpl').textContent=f.plot||f.description||(XC?'Sem sinopse disponível para este título.':'Esta fonte (lista M3U) não traz sinopse. Para ver sinopse, use uma conta Xtream.');
     if(f.movie_image){p.innerHTML='';p.append(logo({logo:f.movie_image}))}
   };
-  const upF=()=>{$('#mf').textContent=favs.has(it.url)?'Na minha lista':'+ Minha lista'};
+  const upF=()=>{$('#mfv').textContent=favs.has(it.url)?'Na minha lista':'+ Minha lista'};
   upF();fill();
   $('#mw').onclick=()=>{$('#mv').hidden=true;play(it)};
-  $('#mf').onclick=()=>{toggleFav(it);upF()};
+  $('#mfv').onclick=()=>{toggleFav(it);upF()};
   $('#md').onclick=()=>download(it);
   if(!it.info&&it.vid&&XC){
     $('#mpl').textContent='Carregando sinopse...';

@@ -26,6 +26,7 @@ A interface (www/) é atualizada sozinha: a cada push o GitHub publica o APK e u
 Quando a mudança mexer no código nativo (pasta native/, package.json ou capacitor.config.json), escreva [apk] na mensagem do commit. Aí o app mostra o aviso para baixar o APK novo.
 
 ## Player nativo (filmes e séries)
-Filmes e episódios agora tocam no player nativo do Android (ExoPlayer), que abre MKV, MP4, HLS, HEVC etc. e usa User-Agent de player. Controles: toque na tela para mostrar; engrenagem para trocar áudio, legenda e velocidade; botão X (ou voltar) para sair. Canais ao vivo continuam no player interno.
+Filmes e episódios agora tocam no player nativo do Android (ExoPlayer), que abre MKV, MP4, HLS, HEVC etc. e usa User-Agent de player. Controles: toque na tela para mostrar; engrenagem para trocar áudio, legenda e velocidade; botão X (ou voltar) para sair. No canto superior direito há o botão "Proporção": toque para alternar entre Ajustar, Preencher (corta as bordas), Esticar, 16:9 e 4:3. A escolha é lembrada e vale também para o player interno.
+Canais ao vivo continuam no player interno.
 Se o player nativo falhar, o app tenta o player interno e, por último, oferece "Abrir em outro player".
 Esta mudança mexe no código nativo: no commit, escreva [apk] na mensagem, aguarde o build e instale o novo APK por cima do antigo.

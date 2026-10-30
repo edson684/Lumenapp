@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
@@ -41,6 +42,7 @@ import androidx.media3.datasource.HttpDataSource;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
+import androidx.media3.ui.AspectRatioFrameLayout;
 import androidx.media3.ui.PlayerView;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -213,6 +215,39 @@ public class LumenPlugin extends Plugin {
   private boolean nStarted;
   private int nRetry;
 
+  // Proporcao da imagem (mesma ordem do player interno do app, em www/index.html)
+  private static final String[] AR_NAMES = {"Ajustar", "Preencher", "Esticar", "16:9", "4:3"};
+  private static final float[] AR_RATIO = {0f, 0f, 0f, 16f / 9f, 4f / 3f};
+  private int nAr;
+
+  /** Aplica a proporcao escolhida ao video. 0=ajustar, 1=preencher (corta), 2=esticar, 3=16:9, 4=4:3. */
+  private void applyAspect(PlayerView pv) {
+    View surface = pv.getVideoSurfaceView();
+    if (surface == null || !(surface.getParent() instanceof View)) return;
+    View frame = (View) surface.getParent();
+    float r = AR_RATIO[nAr];
+    int tw, th;
+    if (r <= 0f) {
+      if (nAr == 1) pv.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_ZOOM);
+      else if (nAr == 2) pv.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
+      else pv.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FIT);
+      tw = ViewGroup.LayoutParams.MATCH_PARENT;
+      th = ViewGroup.LayoutParams.MATCH_PARENT;
+    } else {
+      int W = pv.getWidth(), H = pv.getHeight();
+      if (W <= 0 || H <= 0) return; // ainda sem tamanho; o listener de layout chama de novo
+      int w = W, h = Math.round(W / r);
+      if (h > H) { h = H; w = Math.round(H * r); }
+      pv.setResizeMode(AspectRatioFrameLayout.RESIZE_MODE_FILL);
+      tw = w;
+      th = h;
+    }
+    ViewGroup.LayoutParams cur = frame.getLayoutParams();
+    if (cur == null || cur.width != tw || cur.height != th) {
+      frame.setLayoutParams(new FrameLayout.LayoutParams(tw, th, Gravity.CENTER));
+    }
+  }
+
   /** Fecha o player nativo (sempre na thread principal) e responde a chamada pendente. */
   private void finishNative(String errMsg) {
     PluginCall c = nCall;
@@ -232,6 +267,7 @@ public class LumenPlugin extends Plugin {
       if (errMsg == null) {
         JSObject o = new JSObject();
         o.put("closed", true);
+        o.put("aspect", nAr);
         c.resolve(o);
       } else {
         c.reject(errMsg, "PLAYER_ERROR");
@@ -256,6 +292,7 @@ public class LumenPlugin extends Plugin {
         final float dn = act.getResources().getDisplayMetrics().density;
         nStarted = false;
         nRetry = 0;
+        nAr = Math.max(0, Math.min(AR_NAMES.length - 1, call.getInt("aspect", 0)));
 
         DefaultHttpDataSource.Factory http = new DefaultHttpDataSource.Factory()
             .setUserAgent(PLAYER_UA)
@@ -311,13 +348,39 @@ public class LumenPlugin extends Plugin {
         ttl.setEllipsize(TextUtils.TruncateAt.END);
         FrameLayout.LayoutParams tlp = new FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP | Gravity.START);
-        tlp.setMargins((int) (84 * dn), (int) (28 * dn), (int) (28 * dn), 0);
+        tlp.setMargins((int) (84 * dn), (int) (28 * dn), (int) (210 * dn), 0);
         root.addView(ttl, tlp);
+
+        // Botao de proporcao (toque para alternar: Ajustar, Preencher, Esticar, 16:9, 4:3)
+        final TextView arb = new TextView(act);
+        arb.setText("Propor\u00E7\u00E3o: " + AR_NAMES[nAr]);
+        arb.setTextColor(Color.WHITE);
+        arb.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        arb.setTypeface(arb.getTypeface(), Typeface.BOLD);
+        arb.setGravity(Gravity.CENTER);
+        arb.setPadding((int) (16 * dn), 0, (int) (16 * dn), 0);
+        GradientDrawable abg = new GradientDrawable();
+        abg.setCornerRadius(22 * dn);
+        abg.setColor(0x80000000);
+        arb.setBackground(abg);
+        FrameLayout.LayoutParams alp = new FrameLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, (int) (44 * dn), Gravity.TOP | Gravity.END);
+        alp.setMargins(0, (int) (18 * dn), (int) (28 * dn), 0);
+        root.addView(arb, alp);
+        arb.setOnClickListener(x -> {
+          nAr = (nAr + 1) % AR_NAMES.length;
+          arb.setText("Propor\u00E7\u00E3o: " + AR_NAMES[nAr]);
+          applyAspect(pv);
+          pv.showController();
+        });
+        pv.addOnLayoutChangeListener((vw, l, t, r, b, ol, ot, oright, ob) -> applyAspect(pv));
+        applyAspect(pv);
 
         pv.setControllerVisibilityListener((PlayerView.ControllerVisibilityListener) vis -> {
           int s = vis == View.VISIBLE ? View.VISIBLE : View.GONE;
           close.setVisibility(s);
           ttl.setVisibility(s);
+          arb.setVisibility(s);
         });
 
         final Dialog d = new Dialog(act, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
